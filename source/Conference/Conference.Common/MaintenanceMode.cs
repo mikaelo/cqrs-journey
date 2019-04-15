@@ -14,7 +14,6 @@
 namespace Conference.Common
 {
     using System;
-    using Microsoft.WindowsAzure;
 
     public class MaintenanceMode
     {
@@ -24,9 +23,7 @@ namespace Conference.Common
 
         public static void RefreshIsInMaintainanceMode()
         {
-            var settingValue = CloudConfigurationManager.GetSetting(MaintenanceModeSettingName);
-            IsInMaintainanceMode = (!string.IsNullOrEmpty(settingValue) &&
-                                    string.Equals(settingValue, "true", StringComparison.OrdinalIgnoreCase));
+            IsInMaintainanceMode = false;
         }
     }
 }

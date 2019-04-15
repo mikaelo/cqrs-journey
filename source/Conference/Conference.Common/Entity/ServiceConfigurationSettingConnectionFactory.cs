@@ -18,7 +18,6 @@ namespace Conference.Common.Entity
     using System.Data.Common;
     using System.Data.Entity.Infrastructure;
     using System.Linq;
-    using Microsoft.WindowsAzure;
 
     public class ServiceConfigurationSettingConnectionFactory : IDbConnectionFactory
     {
@@ -43,25 +42,16 @@ namespace Conference.Common.Entity
                         if (!this.cachedConnectionStringsMap.TryGetValue(nameOrConnectionString, out connectionString))
                         {
                             var connectionStringName = "DbContext." + nameOrConnectionString;
-                            var settingValue = CloudConfigurationManager.GetSetting(connectionStringName);
-                            if (!string.IsNullOrEmpty(settingValue))
+                            try
                             {
-                                connectionString = settingValue;
+                                var connectionStringSettings = ConfigurationManager.ConnectionStrings[connectionStringName];
+                                if (connectionStringSettings != null)
+                                {
+                                    connectionString = connectionStringSettings.ConnectionString;
+                                }
                             }
-
-                            if (connectionString == null)
+                            catch (ConfigurationErrorsException)
                             {
-                                try
-                                {
-                                    var connectionStringSettings = ConfigurationManager.ConnectionStrings[connectionStringName];
-                                    if (connectionStringSettings != null)
-                                    {
-                                        connectionString = connectionStringSettings.ConnectionString;
-                                    }
-                                }
-                                catch (ConfigurationErrorsException)
-                                {
-                                }
                             }
 
                             var immutableDictionary = this.cachedConnectionStringsMap

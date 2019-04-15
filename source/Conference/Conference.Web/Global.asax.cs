@@ -23,13 +23,9 @@ namespace Conference.Web.Admin
     using Infrastructure;
     using Infrastructure.Messaging;
     using Infrastructure.Serialization;
-#if LOCAL
     using Infrastructure.Sql.Messaging;
     using Infrastructure.Sql.Messaging.Implementation;
-#else
-    using Infrastructure.Azure.Messaging;
-    using Infrastructure.Azure;
-#endif
+
 
     public class MvcApplication : HttpApplication
     {
@@ -73,13 +69,6 @@ namespace Conference.Web.Admin
 
         protected void Application_Start()
         {
-#if AZURESDK
-            Microsoft.WindowsAzure.ServiceRuntime.RoleEnvironment.Changed +=
-                (s, a) =>
-                {
-                    Microsoft.WindowsAzure.ServiceRuntime.RoleEnvironment.RequestRecycle();
-                };
-#endif
             MaintenanceMode.RefreshIsInMaintainanceMode();
 
             DatabaseSetup.Initialize();
@@ -90,26 +79,8 @@ namespace Conference.Web.Admin
             RegisterRoutes(RouteTable.Routes);
 
             var serializer = new JsonTextSerializer();
-#if LOCAL
             EventBus = new EventBus(new MessageSender(Database.DefaultConnectionFactory, "SqlBus", "SqlBus.Events"), serializer);
-#else
-            var settings = InfrastructureSettings.Read(HttpContext.Current.Server.MapPath(@"~\bin\Settings.xml")).ServiceBus;
 
-            if (!MaintenanceMode.IsInMaintainanceMode)
-            {
-            new ServiceBusConfig(settings).Initialize();
-            }
-
-            EventBus = new EventBus(new TopicSender(settings, "conference/events"), new StandardMetadataProvider(), serializer);
-#endif
-
-#if AZURESDK
-            if (Microsoft.WindowsAzure.ServiceRuntime.RoleEnvironment.IsAvailable)
-            {
-                System.Diagnostics.Trace.Listeners.Add(new Microsoft.WindowsAzure.Diagnostics.DiagnosticMonitorTraceListener());
-                System.Diagnostics.Trace.AutoFlush = true;
-            }
-#endif
         }
     }
 }

@@ -38,13 +38,7 @@ namespace Conference.Web.Public
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope", Justification = "By design")]
         protected void Application_Start()
         {
-#if AZURESDK
-            Microsoft.WindowsAzure.ServiceRuntime.RoleEnvironment.Changed +=
-                (s, a) =>
-                {
-                    Microsoft.WindowsAzure.ServiceRuntime.RoleEnvironment.RequestRecycle();
-                };
-#endif
+
             MaintenanceMode.RefreshIsInMaintainanceMode();
 
             DatabaseSetup.Initialize();
@@ -57,14 +51,6 @@ namespace Conference.Web.Public
             RouteTable.Routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
             AreaRegistration.RegisterAllAreas();
             AppRoutes.RegisterRoutes(RouteTable.Routes);
-
-#if AZURESDK
-            if (Microsoft.WindowsAzure.ServiceRuntime.RoleEnvironment.IsAvailable)
-            {
-                System.Diagnostics.Trace.Listeners.Add(new Microsoft.WindowsAzure.Diagnostics.DiagnosticMonitorTraceListener());
-                System.Diagnostics.Trace.AutoFlush = true;
-            }
-#endif
 
             this.OnStart();
         }
